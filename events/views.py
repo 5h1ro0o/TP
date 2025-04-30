@@ -23,12 +23,15 @@ def home(request):
 
 def event_list(request):
     events = Event.objects.all()
+    for event in events:
+        event.participant_count = event.participation_set.filter(is_attending=True).count()
     return render(request, 'events/event_list.html', {'events': events})
 
 def event_detail(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
     participation = None
     form = None
+    participant_count = event.participation_set.filter(is_attending=True).count()
     
     if request.user.is_authenticated:
         participation, created = Participation.objects.get_or_create(
@@ -50,7 +53,7 @@ def event_detail(request, event_id):
         'event': event,
         'participation': participation,
         'form': form,
-        'participant_count': event.participant_count
+        'participant_count': participant_count
     }
     
     return render(request, 'events/event_detail.html', context)
